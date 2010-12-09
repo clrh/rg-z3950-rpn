@@ -5,11 +5,20 @@ use Regexp::Grammars;
 # based on a grammar found there: 
 # http://www.indexdata.com/yaz/doc/tools.html
 
-qr{ <grammar:Z3950::RPN> <nocontext:>
+sub rpnstring_unescape_qq {
+    # side-effect function to unescape " 
+    my $escaped = '\"';
+    my $index = -1; 
+    while (
+	-1 < ( $index = index $_, $escaped, $index )
+    ) { substr $_, $index, 2, '"' }
+}
 
+qr{ <grammar:Z3950::RPN> <nocontext:>
     <token:rpnstring>
-	" (?: \\. | [^"] )+ " # double quoted string
-	| \S+                 # or simple string without spaces
+	" <MATCH=((?: \\. | [^"] )+)> " # double-quoted string
+	(?{ Regexp::Grammars::Z3950::RPN::rpnstring_unescape_qq for $MATCH })
+	| <MATCH=(\S+)>                 # or bareword
 
     <rule:query>
 	(?: [@]attrset <attrset=rpnstring> )?
