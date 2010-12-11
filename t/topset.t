@@ -1,22 +1,24 @@
 #! /usr/bin/perl
 use Modern::Perl;
-# use Test::More tests => 6;
+use Test::More tests => 10;
 use Regexp::Grammars::Z3950::RPN;
+use Regexp::Grammars;
+require YAML;
 
-my $is_query = do {
-    use Regexp::Grammars;
-    qr{ <extends: Z3950::RPN> <query> }x;
-};
+my $is_query = qr{ <extends: Z3950::RPN> <query> }x;
+my ( $raw, $expected );
 
 for
-( q{@attrset Bib-1 test}
-, q{test}
-, q{@attrset Bib-1 @set test}
-, q{@set test}
-, q{@set "hannn mais ca c'est bien"}
-) {
-   require YAML;
-    /$is_query/ and say YAML::Dump( \%/ );
-    # ok( /$is_rpnstring/  , "$_ parsed"   );
-    # is( $_, $/{rpnstring}, "$_  matched" );
+( [ q{test}                            => {qw/ term test /} ]
+, [ q{@set test}                       => {qw/ set test /} ]
+, [ q{@attrset Bib-1 test}             => {qw/ attrset Bib-1 term test /} ]
+, [ q{@attrset Bib-1 @set test}        => {qw/ attrset Bib-1 set test /} ]
+, [ q{@set "hannn mais ca c'est bien"} => {set => "hannn mais ca c'est bien"} ]
+# , [ q{@attrset Bib-1 @term test @attrsetset Bib-1 foo}
+#     => {@attrset Bib-1 @term test @attrsetset Bib-1 foo}
+#     ]
+) { ( $raw, $expected ) = @$_;
+    ok( $raw ~~ /$is_query/ , "parsing $raw"   );
+    is_deeply( $/{query}, $expected, "$raw datastructure ok" )
+	or diag( YAML::Dump($/{query}))
 }

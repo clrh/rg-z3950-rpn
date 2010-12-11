@@ -14,19 +14,20 @@ sub rpnstring_unescape_qq {
     ) { substr $_, $index, 2, '"' }
 }
 
-qr{ <grammar:Z3950::RPN> <nocontext:>
+qr{ <nocontext:> <grammar:Z3950::RPN> 
     <token:rpnstring>
 	" <MATCH=((?: \\. | [^"] )+)> " # double-quoted string
 	(?{ Regexp::Grammars::Z3950::RPN::rpnstring_unescape_qq for $MATCH })
-	| <MATCH=(\S+)>                 # or bareword
+	| <MATCH=([^\@]\S+)>                 # or bareword
 
     <rule:query>
 	(?: [@]attrset <attrset=rpnstring> )?
-	(?:
-	    <set=([@]set)>? <term=rpnstring> # simple 
+	(?: [@]set <set=rpnstring> 
+	|   [@]term <termtype=(general|numeric|string|oid|datetime|null)> <query>
+	|   <term=rpnstring>
 	)
 
-    <rule:operator> [@] (?: <logic=(and|or|not)> | [@]prox <proximity> )
+    <rule:operator> [@] (?: <logic=(and|or|not)> | prox <proximity> )
 
     <rule:proximity>
 	<exclusion=(1|0|void)>
