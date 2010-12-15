@@ -14,9 +14,9 @@ for
 , [ q{@attrset Bib-1 test}             => {qw/ attrset Bib-1 term test /} ]
 , [ q{@attrset Bib-1 @set test}        => {qw/ attrset Bib-1 set test /} ]
 , [ q{@set "hannn mais ca c'est bien"} => {set => "hannn mais ca c'est bien"} ]
-# , [ q{@attrset Bib-1 @term test @attrsetset Bib-1 foo}
-#     => {@attrset Bib-1 @term test @attrsetset Bib-1 foo}
-#     ]
+, [ q{@attrset Bib-1 @term test @attrset Bib-1 foo}
+    => {}# {qw/attrset Bib-1 term test attrset Bib-1 foo/}
+    ]
 ) { ( $raw, $expected ) = @$_;
     ok( $raw ~~ /$is_query/ , "parsing $raw"   );
     is_deeply( $/{query}, $expected, "$raw datastructure ok" )

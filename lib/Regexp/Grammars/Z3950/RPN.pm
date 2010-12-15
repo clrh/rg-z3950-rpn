@@ -15,19 +15,23 @@ sub rpnstring_unescape_qq {
 }
 
 qr{ <nocontext:> <grammar:Z3950::RPN> 
+
     <token:rpnstring>
 	" <MATCH=((?: \\. | [^"] )+)> " # double-quoted string
 	(?{ Regexp::Grammars::Z3950::RPN::rpnstring_unescape_qq for $MATCH })
-	| <MATCH=([^\@]\S+)>                 # or bareword
+	| <MATCH=(\b[^@\s]\S+)>                  # or bareword
 
-    <rule:query>
-	(?: [@]attrset <attrset=rpnstring> )?
+    <rule:query> (?: [@]attrset <attrset=rpnstring> )? <subquery> 
+
+    <rule:subquery>
 	(?: [@]set <set=rpnstring> 
 	|   [@]term <termtype=(general|numeric|string|oid|datetime|null)> <query>
+	|   [@]attr <[attr=rpnstring]>{1,2} <subquery>
+	|   <operator> <[operands=subquery]>{2} 
 	|   <term=rpnstring>
 	)
 
-    <rule:operator> [@] (?: <logic=(and|or|not)> | prox <proximity> )
+    <rule:operator> [@] (?: <MATCH=(and|or|not)> | prox <proximity> )
 
     <rule:proximity>
 	<exclusion=(1|0|void)>
@@ -44,14 +48,12 @@ __END__
 
      query ::= top-set query-struct.
      query-struct ::= attr-spec | simple | complex | '@term' term-type query
-     attr-spec ::= '@attr' [ string ] string query-struct
+     attr-spec ::= '@attr' [ string ] string query-struct # string ? more specific ? 
      complex ::= operator query-struct query-struct.
      simple ::= result-set | term.
      result-set ::= '@set' string.
      term ::= string.
      term-type ::= 'general' | 'numeric' | 'string' | 'oid' | 'datetime' | 'null'.
-
-    DONE: 
      operator ::= '@and' | '@or' | '@not' | '@prox' proximity.
      proximity ::= exclusion distance ordered relation which-code unit-code.
      exclusion ::= '1' | '0' | 'void'.

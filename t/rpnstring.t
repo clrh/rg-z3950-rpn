@@ -15,7 +15,7 @@ $expected = q{"Kevin " flynn"};
 is( $got, $expected, "rpnstring_unescape_qq works");
 
 for
-( [qw/ operator @set /]
+( [qw/ operator @term /]
 , [ "two double quoted string" => q{"Robert \"Bob\" Kennedy" is "not dead"} ]
 ) {
     my ( $why, $failure ) = @$_; 
