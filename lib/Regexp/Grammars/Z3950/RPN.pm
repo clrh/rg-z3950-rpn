@@ -19,17 +19,25 @@ qr{ <nocontext:> <grammar:Z3950::RPN>
     <token:rpnstring>
 	" <MATCH=((?: \\. | [^"] )+)> " # double-quoted string
 	(?{ Regexp::Grammars::Z3950::RPN::rpnstring_unescape_qq for $MATCH })
-	| <MATCH=(\b[^@\s]\S+)>                  # or bareword
+	| <MATCH=(\b[^@\s]\S++)>                  # or bareword
 
-    <rule:query> (?: [@]attrset <attrset=rpnstring> )? <subquery> 
+    <rule:query> \A (?: [@]attrset <attrset=rpnstring> )? <subquery> \z
 
     <rule:subquery>
 	(?: [@]set <set=rpnstring> 
 	|   [@]term <termtype=(general|numeric|string|oid|datetime|null)> <query>
-	|   [@]attr <[attr=rpnstring]>{1,2} <subquery>
+	|   <[attrspec]>* <term=rpnstring> 
+	#|   [@]attr <attrset=rpnstring>  <attr=rpnstring>?  <term=rpnstring>
+	#|   [@]attr <attrset=rpnstring>  <attr=rpnstring>?  <subquery>
+	# why this failed ? :  |   [@]attr <[attr=rpnstring]>{1,2}  <subquery>
 	|   <operator> <[operands=subquery]>{2} 
-	|   <term=rpnstring>
 	)
+
+    <rule:attrspec>
+	[@]attr
+	(?: <attrset=rpnstring>  <attr=rpnstring>
+	  | <attr=rpnstring>
+	) 
 
     <rule:operator> [@] (?: <MATCH=(and|or|not)> | prox <proximity> )
 
@@ -41,7 +49,7 @@ qr{ <nocontext:> <grammar:Z3950::RPN>
 	<which=(known|private|\d+)>
 	<unit=(\d+)>
 
-};
+}xms;
 
 1;
 __END__
