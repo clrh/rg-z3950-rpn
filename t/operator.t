@@ -10,15 +10,13 @@ my $is_operator = qr{ <nocontext:> <extends: Z3950::RPN> <operator> }x;
 my ( $string, $expected ); 
 
 for
-( [ q{@or}  , {qw/ logic or  /} ]
-, [ q{@and} , {qw/ logic and /} ]
-, [ q{@not} , {qw/ logic not /} ]
+( [ q{@or}  => 'or'  ]
+, [ q{@and} => 'and' ]
+, [ q{@not} => 'not' ]
 ) {
     ( $string, $expected ) = @$_;
     ok( $string ~~ /$is_operator/ , "$string parsed"   );
-    # defined $/{""} and $$expected{""} = $string;
-    $$expected{""} = $string;
-    is_deeply( $/{operator}, $expected, "$string  matched" );
+    is( $/{operator}, $expected, "$string  matched" );
 }
 
 $string  = q{@prox void 10 0 15 private 5};
